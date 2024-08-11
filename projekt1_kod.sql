@@ -42,3 +42,14 @@ FROM v_adela_prystaszova_1 v1
 JOIN czechia_price_category cpc
 	ON v1.category_code = cpc.code
 ;
+
+/* data navíc pro otázky:
+ * 4) Existuje rok, ve kterém byl meziroční nárůst cen potravin výrazně vyšší než růst mezd (větší než 10 %)?
+ * 5) Má výška HDP vliv na změny ve mzdách a cenách potravin? Neboli, pokud HDP vzroste výrazněji v jednom roce,
+ * projeví se to na cenách potravin či mzdách ve stejném nebo následujícím roce výraznějším růstem?
+ */
+SELECT
+	YEAR,
+	GDP
+FROM economies
+WHERE country = 'Czech republic';

@@ -70,3 +70,21 @@ ORDER BY
 	wii.industry_branch_name,
 	wii.payroll_year
 ;
+
+-- Sekundární tabulka
+CREATE OR REPLACE TABLE t_adela_prystaszova_project_SQL_secondary_final
+SELECT
+	co.country stat,
+	ec.`year` rok,
+	ec.population populace,
+	ec.GDP HDP,
+	ec.gini giniho_koeficient
+FROM countries co
+LEFT JOIN economies ec
+	ON co.country = ec.country
+WHERE co.continent = 'Europe' 
+	AND ec.`year` BETWEEN 2006 AND 2018
+ORDER BY 
+	co.country,
+	ec.`year`
+;

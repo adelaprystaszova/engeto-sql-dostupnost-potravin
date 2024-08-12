@@ -9,7 +9,6 @@ WITH wages_in_industries AS (
 		FROM czechia_payroll
 		WHERE value_type_code = 5958  
 			AND calculation_code = 100
-			AND industry_branch_code IS NOT NULL
 		GROUP BY 
 			industry_branch_code, 
 			payroll_year
@@ -96,7 +95,7 @@ ORDER BY
 
 
 -- 1) Rostou v průběhu let mzdy ve všech odvětvích, nebo v některých klesají?
--- Celkový nárůst průměrných měsíčních mezd v jednotlivých odvětvích mezi roky 2006 a 2018 (v procentech):
+-- Nárůst průměrných měsíčních mezd v jednotlivých odvětvích mezi roky 2006 a 2018 (v procentech):
 SELECT DISTINCT
 	t1.odvetvi,
 	t1.prumerna_mesicni_mzda_v_kc mzda_2006,
@@ -108,7 +107,7 @@ INNER JOIN t_adela_prystaszova_project_sql_primary_final t2
 ORDER BY 
 	t1.odvetvi
 ;
--- Procentuální nárůst průměrných měsíčních mezd v odvětvích v jednotlivých letech:
+-- Nárůst průměrných měsíčních mezd v odvětvích v jednotlivých letech (v procentech:
 SELECT DISTINCT
 	t1.odvetvi,
 	t1.rok,
@@ -124,7 +123,7 @@ ORDER BY
 	t1.odvetvi,
 	t1.rok
 ;
--- Odvětví a roky s poklesem průměrných měsíčních mezd:
+-- Odvětví a roky, ve kterých průměrné měsíční mzdy poklesly:
 SELECT DISTINCT
 	t1.odvetvi,
 	t1.rok,
@@ -144,6 +143,27 @@ ORDER BY
 
 
 -- 2) Kolik je možné si koupit litrů mléka a kilogramů chleba za první a poslední srovnatelné období v dostupných datech cen a mezd?
+WITH ceny_potravin AS (
+	SELECT 
+		rok,	
+		potravina,
+		prumerna_mesicni_mzda_v_kc,
+		prumerna_cena_potraviny,
+		jednotka_potraviny
+	FROM t_adela_prystaszova_project_sql_primary_final
+	WHERE odvetvi IS NULL AND rok IN ('2006', '2018')
+)
+SELECT
+	cp1.potravina,
+	concat(round(cp1.prumerna_mesicni_mzda_v_kc/cp1.prumerna_cena_potraviny, 0), ' ', cp1.jednotka_potraviny) mnozstvi_za_prumernou_mzdu_2006,
+	concat(round(cp2.prumerna_mesicni_mzda_v_kc/cp2.prumerna_cena_potraviny, 0), ' ', cp1.jednotka_potraviny) mnozstvi_za_prumernou_mzdu_2018
+FROM ceny_potravin cp1
+LEFT JOIN ceny_potravin cp2
+	ON cp1.rok = cp2.rok-12 AND cp1.potravina = cp2.potravina
+WHERE 
+	cp1.potravina IN ('Mléko polotučné pasterované', 'Chléb konzumní kmínový')
+	AND cp1.rok = '2006'
+;
 
 
 -- 3) Která kategorie potravin zdražuje nejpomaleji (je u ní nejnižší percentuální meziroční nárůst)?

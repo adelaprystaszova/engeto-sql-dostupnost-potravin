@@ -53,14 +53,14 @@ economy AS (
 	WHERE country = 'Czech Republic'
 )
 SELECT
-	wii.industry_branch_name,
-	wii.payroll_year,
-	wii.average_wage,
-	fp.name,
-	fp.average_price,
-	fp.price_value,
-	fp.price_unit,
-	ec.gdp
+	wii.industry_branch_name odvetvi,
+	wii.payroll_year rok,
+	wii.average_wage prumerna_mesicni_mzda_v_kc,
+	fp.name potravina,
+	fp.average_price prumerna_cena_potraviny,
+	fp.price_value mnozstvi_potraviny,
+	fp.price_unit jednotka_potraviny,
+	ec.gdp HDP
 FROM wages_in_industries wii
 INNER JOIN food_prices fp
 	ON wii.payroll_year = fp.price_year

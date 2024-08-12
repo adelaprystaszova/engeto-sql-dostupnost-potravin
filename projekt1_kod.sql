@@ -143,6 +143,25 @@ ORDER BY
 
 
 -- 2) Kolik je možné si koupit litrů mléka a kilogramů chleba za první a poslední srovnatelné období v dostupných datech cen a mezd?
+SELECT
+	v1.potravina,
+	concat(round(v1.prumerna_mesicni_mzda_v_kc/v1.prumerna_cena_potraviny, 0), ' ', v1.jednotka_potraviny) mnozstvi_za_prumernou_mzdu_2006,
+	concat(round(v2.prumerna_mesicni_mzda_v_kc/v2.prumerna_cena_potraviny, 0), ' ', v1.jednotka_potraviny) mnozstvi_za_prumernou_mzdu_2018
+FROM t_adela_prystaszova_project_sql_primary_final v1
+LEFT JOIN t_adela_prystaszova_project_sql_primary_final v2
+	ON v1.rok = v2.rok-12 AND v1.potravina = v2.potravina
+WHERE
+	v1.potravina IN ('Mléko polotučné pasterované', 'Chléb konzumní kmínový')
+	AND v1.rok = '2006'
+	AND v1.odvetvi IS NULL  
+	AND v2.odvetvi IS NULL 
+ORDER BY
+	v1.odvetvi,
+	v1.potravina desc
+;
+
+
+
 WITH ceny_potravin AS (
 	SELECT 
 		rok,	

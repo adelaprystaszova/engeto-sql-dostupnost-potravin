@@ -1,4 +1,4 @@
--- Primární tabulka
+-- PRIMÁRNÍ TABULKA
 CREATE OR REPLACE TABLE t_adela_prystaszova_project_SQL_primary_final
 WITH wages_in_industries AS (
 	WITH wages AS (
@@ -7,7 +7,8 @@ WITH wages_in_industries AS (
 			payroll_year,
 			avg(value) average_wage
 		FROM czechia_payroll
-		WHERE value_type_code = 5958  AND calculation_code = 100
+		WHERE value_type_code = 5958  
+			AND calculation_code = 100
 			AND industry_branch_code IS NOT NULL
 		GROUP BY 
 			industry_branch_code, 
@@ -71,7 +72,7 @@ ORDER BY
 	wii.payroll_year
 ;
 
--- Sekundární tabulka
+-- SEKUNDÁRNÍ TABULKA
 CREATE OR REPLACE TABLE t_adela_prystaszova_project_SQL_secondary_final
 SELECT
 	co.country stat,
@@ -88,3 +89,70 @@ ORDER BY
 	co.country,
 	ec.`year`
 ;
+
+
+
+-- PODKLADY K ZODPOVĚZENÍ OTÁZEK
+
+
+-- 1) Rostou v průběhu let mzdy ve všech odvětvích, nebo v některých klesají?
+-- Celkový nárůst průměrných měsíčních mezd v jednotlivých odvětvích mezi roky 2006 a 2018 (v procentech):
+SELECT DISTINCT
+	t1.odvetvi,
+	t1.prumerna_mesicni_mzda_v_kc mzda_2006,
+	t2.prumerna_mesicni_mzda_v_kc mzda_2018,
+	round((t2.prumerna_mesicni_mzda_v_kc - t1.prumerna_mesicni_mzda_v_kc)/t1.prumerna_mesicni_mzda_v_kc*100, 2) AS narust_mzdy_v_procentech
+FROM t_adela_prystaszova_project_sql_primary_final t1
+INNER JOIN t_adela_prystaszova_project_sql_primary_final t2
+	ON t1.odvetvi = t2.odvetvi AND t1.rok = t2.rok-12
+ORDER BY 
+	t1.odvetvi
+;
+-- Procentuální nárůst průměrných měsíčních mezd v odvětvích v jednotlivých letech:
+SELECT DISTINCT
+	t1.odvetvi,
+	t1.rok,
+	t1.prumerna_mesicni_mzda_v_kc mzda,
+	t2.rok nasledujici_rok,
+	t2.prumerna_mesicni_mzda_v_kc mzda_v_nasledujicim_roce,
+	round((t2.prumerna_mesicni_mzda_v_kc - t1.prumerna_mesicni_mzda_v_kc)/t1.prumerna_mesicni_mzda_v_kc*100, 2) AS narust_mzdy_v_procentech
+FROM t_adela_prystaszova_project_sql_primary_final t1
+INNER JOIN t_adela_prystaszova_project_sql_primary_final t2
+	ON t1.odvetvi = t2.odvetvi 
+	AND t1.rok = t2.rok-1
+ORDER BY 
+	t1.odvetvi,
+	t1.rok
+;
+-- Odvětví a roky s poklesem průměrných měsíčních mezd:
+SELECT DISTINCT
+	t1.odvetvi,
+	t1.rok,
+	t1.prumerna_mesicni_mzda_v_kc mzda,
+	t2.rok nasledujici_rok,
+	t2.prumerna_mesicni_mzda_v_kc mzda_v_nasledujicim_roce,
+	round((t2.prumerna_mesicni_mzda_v_kc - t1.prumerna_mesicni_mzda_v_kc)/t1.prumerna_mesicni_mzda_v_kc*100, 2) AS narust_mzdy_v_procentech
+FROM t_adela_prystaszova_project_sql_primary_final t1
+INNER JOIN t_adela_prystaszova_project_sql_primary_final t2
+	ON t1.odvetvi = t2.odvetvi 
+	AND t1.rok = t2.rok-1 
+WHERE round((t2.prumerna_mesicni_mzda_v_kc - t1.prumerna_mesicni_mzda_v_kc)/t1.prumerna_mesicni_mzda_v_kc*100, 2) < 0
+ORDER BY 
+	t1.odvetvi,
+	t1.rok
+;
+
+
+-- 2) Kolik je možné si koupit litrů mléka a kilogramů chleba za první a poslední srovnatelné období v dostupných datech cen a mezd?
+
+
+-- 3) Která kategorie potravin zdražuje nejpomaleji (je u ní nejnižší percentuální meziroční nárůst)?
+
+
+-- 4) Existuje rok, ve kterém byl meziroční nárůst cen potravin výrazně vyšší než růst mezd (větší než 10 %)?
+
+
+/* 5) Má výška HDP vliv na změny ve mzdách a cenách potravin? Neboli, pokud HDP vzroste výrazněji v jednom roce, 
+ * projeví se to na cenách potravin či mzdách ve stejném nebo následujícím roce výraznějším růstem?
+ */
+

@@ -71,6 +71,7 @@ ORDER BY
 	wii.payroll_year
 ;
 
+
 -- SEKUNDÁRNÍ TABULKA
 CREATE OR REPLACE TABLE t_adela_prystaszova_project_SQL_secondary_final
 SELECT
@@ -91,7 +92,7 @@ ORDER BY
 
 
 
--- PODKLADY K ZODPOVĚZENÍ OTÁZEK
+-- PODKLADY K ZODPOVĚZENÍ VÝZKUMNÝCH OTÁZEK
 
 
 -- 1) Rostou v průběhu let mzdy ve všech odvětvích, nebo v některých klesají?
@@ -104,8 +105,7 @@ SELECT DISTINCT
 FROM t_adela_prystaszova_project_sql_primary_final t1
 INNER JOIN t_adela_prystaszova_project_sql_primary_final t2
 	ON t1.odvetvi = t2.odvetvi AND t1.rok = t2.rok-12
-ORDER BY 
-	t1.odvetvi
+ORDER BY (t2.prumerna_mesicni_mzda_v_kc - t1.prumerna_mesicni_mzda_v_kc)/t1.prumerna_mesicni_mzda_v_kc
 ;
 -- Odvětví a roky, ve kterých průměrné měsíční mzdy poklesly:
 SELECT DISTINCT
@@ -162,8 +162,10 @@ ORDER BY
 -- 4) Existuje rok, ve kterém byl meziroční nárůst cen potravin výrazně vyšší než růst mezd (větší než 10 %)?
 SELECT
 	t2.rok,
+	round((t2.prumerna_mesicni_mzda_v_kc - t1.prumerna_mesicni_mzda_v_kc)/t1.prumerna_mesicni_mzda_v_kc*100, 2) AS narust_mezd_v_procentech,
 	round(avg((t2.prumerna_cena_potraviny - t1.prumerna_cena_potraviny)/t1.prumerna_cena_potraviny*100), 2) narust_cen_v_procentech,
-	round((t2.prumerna_mesicni_mzda_v_kc - t1.prumerna_mesicni_mzda_v_kc)/t1.prumerna_mesicni_mzda_v_kc*100, 2) AS narust_mezd_v_procentech
+	round((avg((t2.prumerna_cena_potraviny - t1.prumerna_cena_potraviny)/t1.prumerna_cena_potraviny) 
+		- ((t2.prumerna_mesicni_mzda_v_kc - t1.prumerna_mesicni_mzda_v_kc)/t1.prumerna_mesicni_mzda_v_kc))*100, 2) rozdil_narustu_cen_a_mezd
 FROM t_adela_prystaszova_project_sql_primary_final t1
 INNER JOIN t_adela_prystaszova_project_sql_primary_final t2
 	ON t1.potravina = t2.potravina 

@@ -179,3 +179,18 @@ ORDER BY
 /* 5) Má výška HDP vliv na změny ve mzdách a cenách potravin? Neboli, pokud HDP vzroste výrazněji v jednom roce, 
  * projeví se to na cenách potravin či mzdách ve stejném nebo následujícím roce výraznějším růstem?
  */
+SELECT
+	t2.rok,
+	round(avg((t2.HDP - t1.HDP)/t1.HDP*100), 2) narust_hdp_v_procentech,
+	round(avg((t2.prumerna_cena_potraviny - t1.prumerna_cena_potraviny)/t1.prumerna_cena_potraviny*100), 2) narust_cen_v_procentech,
+	round((t2.prumerna_mesicni_mzda_v_kc - t1.prumerna_mesicni_mzda_v_kc)/t1.prumerna_mesicni_mzda_v_kc*100, 2) AS narust_mezd_v_procentech
+FROM t_adela_prystaszova_project_sql_primary_final t1
+INNER JOIN t_adela_prystaszova_project_sql_primary_final t2
+	ON t1.potravina = t2.potravina 
+	AND t1.rok = t2.rok-1
+WHERE t1.odvetvi IS NULL  
+	AND t2.odvetvi IS NULL
+GROUP BY t1.rok
+ORDER BY 
+	t1.rok
+;

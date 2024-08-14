@@ -95,11 +95,11 @@ ORDER BY
 
 
 -- 1) Rostou v průběhu let mzdy ve všech odvětvích, nebo v některých klesají?
--- Nárůst průměrných měsíčních mezd v jednotlivých odvětvích mezi roky 2006 a 2018 (v procentech):
+-- Nárůst průměrných měsíčních mezd v jednotlivých odvětvích mezi roky 2006 a 2018:
 SELECT DISTINCT
 	t1.odvetvi,
-	t1.prumerna_mesicni_mzda_v_kc mzda_2006,
-	t2.prumerna_mesicni_mzda_v_kc mzda_2018,
+	round(t1.prumerna_mesicni_mzda_v_kc, 0) mzda_2006,
+	round(t2.prumerna_mesicni_mzda_v_kc, 0) mzda_2018,
 	round((t2.prumerna_mesicni_mzda_v_kc - t1.prumerna_mesicni_mzda_v_kc)/t1.prumerna_mesicni_mzda_v_kc*100, 2) AS narust_mzdy_v_procentech
 FROM t_adela_prystaszova_project_sql_primary_final t1
 INNER JOIN t_adela_prystaszova_project_sql_primary_final t2
@@ -107,29 +107,12 @@ INNER JOIN t_adela_prystaszova_project_sql_primary_final t2
 ORDER BY 
 	t1.odvetvi
 ;
--- Nárůst průměrných měsíčních mezd v odvětvích v jednotlivých letech (v procentech):
-SELECT DISTINCT
-	t1.odvetvi,
-	t1.rok,
-	t1.prumerna_mesicni_mzda_v_kc mzda,
-	t2.rok nasledujici_rok,
-	t2.prumerna_mesicni_mzda_v_kc mzda_v_nasledujicim_roce,
-	round((t2.prumerna_mesicni_mzda_v_kc - t1.prumerna_mesicni_mzda_v_kc)/t1.prumerna_mesicni_mzda_v_kc*100, 2) AS narust_mzdy_v_procentech
-FROM t_adela_prystaszova_project_sql_primary_final t1
-INNER JOIN t_adela_prystaszova_project_sql_primary_final t2
-	ON t1.odvetvi = t2.odvetvi 
-	AND t1.rok = t2.rok-1
-ORDER BY 
-	t1.odvetvi,
-	t1.rok
-;
 -- Odvětví a roky, ve kterých průměrné měsíční mzdy poklesly:
 SELECT DISTINCT
 	t1.odvetvi,
-	t1.rok,
-	t1.prumerna_mesicni_mzda_v_kc mzda,
-	t2.rok nasledujici_rok,
-	t2.prumerna_mesicni_mzda_v_kc mzda_v_nasledujicim_roce,
+	t2.rok,
+	round(t1.prumerna_mesicni_mzda_v_kc, 0) mzda_predesly_rok,
+	round(t2.prumerna_mesicni_mzda_v_kc, 0) mzda_dany_rok,
 	round((t2.prumerna_mesicni_mzda_v_kc - t1.prumerna_mesicni_mzda_v_kc)/t1.prumerna_mesicni_mzda_v_kc*100, 2) AS narust_mzdy_v_procentech
 FROM t_adela_prystaszova_project_sql_primary_final t1
 INNER JOIN t_adela_prystaszova_project_sql_primary_final t2
@@ -164,7 +147,7 @@ ORDER BY
 -- 3) Která kategorie potravin zdražuje nejpomaleji (je u ní nejnižší percentuální meziroční nárůst)?
 SELECT DISTINCT
 	t1.potravina,
-	avg(round((t2.prumerna_cena_potraviny - t1.prumerna_cena_potraviny)/t1.prumerna_cena_potraviny*100, 2)) prumerny_mezirocni_narust_ceny_v_procentech
+	round(avg((t2.prumerna_cena_potraviny - t1.prumerna_cena_potraviny)/t1.prumerna_cena_potraviny*100), 2) prumerny_mezirocni_narust_ceny_v_procentech
 FROM t_adela_prystaszova_project_sql_primary_final t1
 INNER JOIN t_adela_prystaszova_project_sql_primary_final t2
 	ON t1.potravina = t2.potravina 
@@ -172,14 +155,14 @@ INNER JOIN t_adela_prystaszova_project_sql_primary_final t2
 WHERE t1.potravina != 'Jakostní víno bílé'
 GROUP BY t1.potravina
 ORDER BY 
-	avg(round((t2.prumerna_cena_potraviny - t1.prumerna_cena_potraviny)/t1.prumerna_cena_potraviny*100, 2))
+	avg((t2.prumerna_cena_potraviny - t1.prumerna_cena_potraviny)/t1.prumerna_cena_potraviny*100)
 ;
 
 
 -- 4) Existuje rok, ve kterém byl meziroční nárůst cen potravin výrazně vyšší než růst mezd (větší než 10 %)?
 SELECT
 	t2.rok,
-	avg(round((t2.prumerna_cena_potraviny - t1.prumerna_cena_potraviny)/t1.prumerna_cena_potraviny*100, 2)) narust_cen_v_procentech,
+	round(avg((t2.prumerna_cena_potraviny - t1.prumerna_cena_potraviny)/t1.prumerna_cena_potraviny*100), 2) narust_cen_v_procentech,
 	round((t2.prumerna_mesicni_mzda_v_kc - t1.prumerna_mesicni_mzda_v_kc)/t1.prumerna_mesicni_mzda_v_kc*100, 2) AS narust_mezd_v_procentech
 FROM t_adela_prystaszova_project_sql_primary_final t1
 INNER JOIN t_adela_prystaszova_project_sql_primary_final t2
@@ -191,34 +174,6 @@ GROUP BY t1.rok
 ORDER BY 
 	t1.rok
 ;
-
-
--- prumerny narust cen potravin
-SELECT
-	t1.rok,
-	t2.rok nasledujici_rok,
-	avg(round((t2.prumerna_cena_potraviny - t1.prumerna_cena_potraviny)/t1.prumerna_cena_potraviny*100, 2)) narust_ceny_v_procentech
-FROM t_adela_prystaszova_project_sql_primary_final t1
-INNER JOIN t_adela_prystaszova_project_sql_primary_final t2
-	ON t1.potravina = t2.potravina 
-	AND t1.rok = t2.rok-1
-GROUP BY t1.rok
-	ORDER BY 
-	t1.rok
-;
-
--- narust celkove prumerne mzdy:
-SELECT DISTINCT
-	v1.rok,
-	v2.rok nasledujici_rok,
-	round((v2.prumerna_mesicni_mzda_v_kc - v1.prumerna_mesicni_mzda_v_kc)/v1.prumerna_mesicni_mzda_v_kc*100, 2) AS narust_mezd_v_procentech
-FROM t_adela_prystaszova_project_sql_primary_final v1
-INNER JOIN t_adela_prystaszova_project_sql_primary_final v2
-	ON v1.rok = v2.rok-1 AND v1.potravina = v2.potravina
-WHERE v1.odvetvi IS NULL  
-	AND v2.odvetvi IS NULL 
-;
-
 
 
 /* 5) Má výška HDP vliv na změny ve mzdách a cenách potravin? Neboli, pokud HDP vzroste výrazněji v jednom roce, 

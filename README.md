@@ -1,4 +1,4 @@
-# SQL projekt
+# SQL projekt: dostupnost potravin
 Výstup SQL projektu vypracovaného během kurzu Datová Akademie od Engeta.  
 _Results of an SQL project completed during the Data Academy course by Engeto._
 ## Základní informace

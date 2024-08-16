@@ -1,3 +1,5 @@
+-- Discord: adela6286
+
 -- PRIMÁRNÍ TABULKA
 CREATE OR REPLACE TABLE t_adela_prystaszova_project_SQL_primary_final
 WITH wages_in_industries AS (

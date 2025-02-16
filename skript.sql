@@ -99,17 +99,22 @@ ORDER BY
 
 -- 1) Rostou v průběhu let mzdy ve všech odvětvích, nebo v některých klesají?
 -- Nárůst průměrných měsíčních mezd v jednotlivých odvětvích mezi roky 2006 a 2018:
-SELECT
-	t1.odvetvi,
-	round(t1.prumerna_mzda, 0) mzda_2006,
-	round(t2.prumerna_mzda, 0) mzda_2018,
-	round((t2.prumerna_mzda - t1.prumerna_mzda)/t1.prumerna_mzda*100, 2) AS narust_mzdy_v_procentech
-FROM t_adela_prystaszova_project_sql_primary_final t1
-INNER JOIN t_adela_prystaszova_project_sql_primary_final t2
-	ON t1.odvetvi = t2.odvetvi AND t1.rok = 2006 AND t2.rok = 2018
-GROUP BY t1.odvetvi
-ORDER BY (t2.prumerna_mzda - t1.prumerna_mzda)/t1.prumerna_mzda
+WITH mzdovy_narust AS (
+	SELECT
+		t1.odvetvi,
+		round(t1.prumerna_mzda, 0) mzda_2006,
+		round(t2.prumerna_mzda, 0) mzda_2018,
+		round((t2.prumerna_mzda - t1.prumerna_mzda)/t1.prumerna_mzda*100, 2) AS narust_mzdy_v_procentech
+	FROM t_adela_prystaszova_project_sql_primary_final t1
+	INNER JOIN t_adela_prystaszova_project_sql_primary_final t2
+		ON t1.odvetvi = t2.odvetvi AND t1.rok = 2006 AND t2.rok = 2018
+	GROUP BY t1.odvetvi
+)
+SELECT *
+FROM mzdovy_narust
+ORDER BY narust_mzdy_v_procentech
 ;
+
 -- Odvětví a roky, ve kterých průměrné měsíční mzdy poklesly:
 SELECT
 	t1.odvetvi,
@@ -153,17 +158,21 @@ ORDER BY
 
 
 -- 3) Která kategorie potravin zdražuje nejpomaleji (je u ní nejnižší percentuální meziroční nárůst)?
-SELECT
-	t1.potravina,
-	round(avg((t2.prumerna_cena_potraviny - t1.prumerna_cena_potraviny)/t1.prumerna_cena_potraviny*100), 2) prumerny_narust_ceny_v_procentech
-FROM t_adela_prystaszova_project_sql_primary_final t1
-INNER JOIN t_adela_prystaszova_project_sql_primary_final t2
-	ON t1.potravina = t2.potravina 
-	AND t1.rok = t2.rok-1
-WHERE t1.potravina != 'Jakostní víno bílé'
-GROUP BY t1.potravina
+WITH narust_cen AS (
+	SELECT
+		t1.potravina,
+		round(avg((t2.prumerna_cena_potraviny - t1.prumerna_cena_potraviny)/t1.prumerna_cena_potraviny*100), 2) prumerny_narust_ceny_v_procentech
+	FROM t_adela_prystaszova_project_sql_primary_final t1
+	INNER JOIN t_adela_prystaszova_project_sql_primary_final t2
+		ON t1.potravina = t2.potravina 
+		AND t1.rok = t2.rok-1
+	WHERE t1.potravina != 'Jakostní víno bílé'
+	GROUP BY t1.potravina
+)
+SELECT *
+FROM narust_cen
 ORDER BY 
-	avg((t2.prumerna_cena_potraviny - t1.prumerna_cena_potraviny)/t1.prumerna_cena_potraviny*100)
+	prumerny_narust_ceny_v_procentech
 ;
 
 -- 4) Existuje rok, ve kterém byl meziroční nárůst cen potravin výrazně vyšší než růst mezd (větší než 10 %)?

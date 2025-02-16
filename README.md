@@ -1,6 +1,8 @@
 # SQL projekt: Dostupnost potravin v Česku
 Výstup SQL projektu vypracovaného během kurzu Datová Akademie od Engeta.  
-_Results of an SQL project completed during the Data Academy course by Engeto._
+_Results of an SQL project completed during the Data Academy course by Engeto._   
+Dokončeno: 16. 8. 2024   
+Upraveno: 16. 2. 2025
 ## Základní informace
 Repozitář obsahuje první ze dvou projektů vypracovaných v rámci kurzu Datová akademie od společnosti Engeto. Tento projekt se zaměřuje na dostupnost potravin široké české veřejnosti na základě průměrných příjmů a jeho cílem je pomocí SQL zpracovat datové podklady a nalézt odpovědi na pět výzkumných otázek.
 ## Struktura repozitáře

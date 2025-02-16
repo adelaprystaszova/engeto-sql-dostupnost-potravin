@@ -99,17 +99,6 @@ ORDER BY
 
 -- 1) Rostou v průběhu let mzdy ve všech odvětvích, nebo v některých klesají?
 -- Nárůst průměrných měsíčních mezd v jednotlivých odvětvích mezi roky 2006 a 2018:
-SELECT DISTINCT
-	t1.odvetvi,
-	round(t1.prumerna_mzda, 0) mzda_2006,
-	round(t2.prumerna_mzda, 0) mzda_2018,
-	round((t2.prumerna_mzda - t1.prumerna_mzda)/t1.prumerna_mzda*100, 2) AS narust_mzdy_v_procentech
-FROM t_adela_prystaszova_project_sql_primary_final t1
-INNER JOIN t_adela_prystaszova_project_sql_primary_final t2
-	ON t1.odvetvi = t2.odvetvi AND t1.rok = t2.rok-12
-ORDER BY (t2.prumerna_mzda - t1.prumerna_mzda)/t1.prumerna_mzda
-;
-
 SELECT
 	t1.odvetvi,
 	round(t1.prumerna_mzda, 0) mzda_2006,
@@ -122,7 +111,7 @@ GROUP BY t1.odvetvi
 ORDER BY (t2.prumerna_mzda - t1.prumerna_mzda)/t1.prumerna_mzda
 ;
 -- Odvětví a roky, ve kterých průměrné měsíční mzdy poklesly:
-SELECT DISTINCT
+SELECT
 	t1.odvetvi,
 	t2.rok,
 	round(t1.prumerna_mzda, 0) mzda_predesly_rok,
@@ -133,11 +122,15 @@ INNER JOIN t_adela_prystaszova_project_sql_primary_final t2
 	ON t1.odvetvi = t2.odvetvi 
 	AND t1.rok = t2.rok-1 
 WHERE round((t2.prumerna_mzda - t1.prumerna_mzda)/t1.prumerna_mzda*100, 2) < 0
+GROUP BY 
+	t1.odvetvi, 
+	t2.rok, 
+	t1.prumerna_mzda, 
+	t2.prumerna_mzda
 ORDER BY 
 	t1.odvetvi,
 	t1.rok
 ;
-
 
 -- 2) Kolik je možné si koupit litrů mléka a kilogramů chleba za první a poslední srovnatelné období v dostupných datech cen a mezd?
 SELECT
@@ -160,7 +153,7 @@ ORDER BY
 
 
 -- 3) Která kategorie potravin zdražuje nejpomaleji (je u ní nejnižší percentuální meziroční nárůst)?
-SELECT DISTINCT
+SELECT
 	t1.potravina,
 	round(avg((t2.prumerna_cena_potraviny - t1.prumerna_cena_potraviny)/t1.prumerna_cena_potraviny*100), 2) prumerny_narust_ceny_v_procentech
 FROM t_adela_prystaszova_project_sql_primary_final t1
@@ -172,7 +165,6 @@ GROUP BY t1.potravina
 ORDER BY 
 	avg((t2.prumerna_cena_potraviny - t1.prumerna_cena_potraviny)/t1.prumerna_cena_potraviny*100)
 ;
-
 
 -- 4) Existuje rok, ve kterém byl meziroční nárůst cen potravin výrazně vyšší než růst mezd (větší než 10 %)?
 SELECT

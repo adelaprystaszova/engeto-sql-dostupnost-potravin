@@ -7,7 +7,7 @@ WITH wages_in_industries AS (
 		SELECT 
 			industry_branch_code,
 			payroll_year,
-			avg(value) average_wage
+			avg(value) AS average_wage
 		FROM czechia_payroll
 		WHERE value_type_code = 5958  
 			AND calculation_code = 100
@@ -19,19 +19,19 @@ WITH wages_in_industries AS (
 			payroll_year
 	)
 	SELECT 
-		cpib.name industry_branch_name,
+		cpib.name AS industry_branch_name,
 		w.payroll_year,
 		w.average_wage
 	FROM wages w
-	LEFT JOIN czechia_payroll_industry_branch cpib
+	LEFT JOIN czechia_payroll_industry_branch AS cpib
 		ON w.industry_branch_code = cpib.code
 ),
 food_prices AS (
 	WITH prices AS (
 		SELECT 
 			category_code,
-			avg(value) average_price,
-			year(date_from) price_year
+			avg(value) AS average_price,
+			year(date_from) AS price_year
 		FROM czechia_price
 		GROUP BY 
 			category_code, 
@@ -44,7 +44,7 @@ food_prices AS (
 		cpc.price_unit,
 		p.price_year
 	FROM prices p
-	LEFT JOIN czechia_price_category cpc
+	LEFT JOIN czechia_price_category AS cpc
 		ON p.category_code = cpc.code
 ),
 economy AS (
@@ -55,18 +55,18 @@ economy AS (
 	WHERE country = 'Czech Republic'
 )
 SELECT
-	wii.industry_branch_name odvetvi,
-	wii.payroll_year rok,
-	wii.average_wage prumerna_mzda,
-	fp.name potravina,
-	fp.average_price prumerna_cena_potraviny,
-	fp.price_value mnozstvi_potraviny,
-	fp.price_unit jednotka_potraviny,
+	wii.industry_branch_name AS odvetvi,
+	wii.payroll_year AS rok,
+	wii.average_wage AS prumerna_mzda,
+	fp.name AS potravina,
+	fp.average_price AS prumerna_cena_potraviny,
+	fp.price_value AS mnozstvi_potraviny,
+	fp.price_unit AS jednotka_potraviny,
 	ec.gdp HDP
-FROM wages_in_industries wii
-INNER JOIN food_prices fp
+FROM wages_in_industries AS wii
+INNER JOIN food_prices AS fp
 	ON wii.payroll_year = fp.price_year
-LEFT JOIN economy ec
+LEFT JOIN economy AS ec
 	ON wii.payroll_year = ec.year
 ORDER BY 
 	wii.industry_branch_name,
@@ -77,13 +77,13 @@ ORDER BY
 -- SEKUNDÁRNÍ TABULKA
 CREATE OR REPLACE TABLE t_adela_prystaszova_project_SQL_secondary_final
 SELECT
-	ec.country stat,
-	ec.`year` rok,
-	ec.population populace,
-	ec.GDP HDP,
-	ec.gini giniho_index
-FROM countries co
-LEFT JOIN economies ec
+	ec.country AS stat,
+	ec.`year` AS rok,
+	ec.population AS populace,
+	ec.GDP AS HDP,
+	ec.gini AS giniho_index
+FROM countries AS co
+LEFT JOIN economies AS ec
 	ON co.country = ec.country
 WHERE co.continent = 'Europe' 
 	AND ec.`year` BETWEEN 2006 AND 2018
@@ -102,11 +102,11 @@ ORDER BY
 WITH mzdovy_narust AS (
 	SELECT
 		t1.odvetvi,
-		round(t1.prumerna_mzda, 0) mzda_2006,
-		round(t2.prumerna_mzda, 0) mzda_2018,
+		round(t1.prumerna_mzda, 0) AS mzda_2006,
+		round(t2.prumerna_mzda, 0) AS mzda_2018,
 		round((t2.prumerna_mzda - t1.prumerna_mzda)/t1.prumerna_mzda*100, 2) AS narust_mzdy_v_procentech
-	FROM t_adela_prystaszova_project_sql_primary_final t1
-	INNER JOIN t_adela_prystaszova_project_sql_primary_final t2
+	FROM t_adela_prystaszova_project_sql_primary_final AS t1
+	INNER JOIN t_adela_prystaszova_project_sql_primary_final AS t2
 		ON t1.odvetvi = t2.odvetvi AND t1.rok = 2006 AND t2.rok = 2018
 	GROUP BY t1.odvetvi
 )
@@ -119,11 +119,11 @@ ORDER BY narust_mzdy_v_procentech
 SELECT
 	t1.odvetvi,
 	t2.rok,
-	round(t1.prumerna_mzda, 0) mzda_predesly_rok,
-	round(t2.prumerna_mzda, 0) mzda_dany_rok,
+	round(t1.prumerna_mzda, 0) AS mzda_predesly_rok,
+	round(t2.prumerna_mzda, 0) AS mzda_dany_rok,
 	round((t2.prumerna_mzda - t1.prumerna_mzda)/t1.prumerna_mzda*100, 2) AS narust_mzdy_v_procentech
-FROM t_adela_prystaszova_project_sql_primary_final t1
-INNER JOIN t_adela_prystaszova_project_sql_primary_final t2
+FROM t_adela_prystaszova_project_sql_primary_final AS t1
+INNER JOIN t_adela_prystaszova_project_sql_primary_final AS t2
 	ON t1.odvetvi = t2.odvetvi 
 	AND t1.rok = t2.rok-1 
 WHERE round((t2.prumerna_mzda - t1.prumerna_mzda)/t1.prumerna_mzda*100, 2) < 0
@@ -140,11 +140,11 @@ ORDER BY
 -- 2) Kolik je možné si koupit litrů mléka a kilogramů chleba za první a poslední srovnatelné období v dostupných datech cen a mezd?
 SELECT
 	t1.potravina,
-	concat(round(t1.prumerna_mzda/t1.prumerna_cena_potraviny, 0), ' ', t1.jednotka_potraviny) mnozstvi_za_prumernou_mzdu_2006,
-	concat(round(t2.prumerna_mzda/t2.prumerna_cena_potraviny, 0), ' ', t1.jednotka_potraviny) mnozstvi_za_prumernou_mzdu_2018,
+	concat(round(t1.prumerna_mzda/t1.prumerna_cena_potraviny, 0), ' ', t1.jednotka_potraviny) AS mnozstvi_za_prumernou_mzdu_2006,
+	concat(round(t2.prumerna_mzda/t2.prumerna_cena_potraviny, 0), ' ', t1.jednotka_potraviny) AS mnozstvi_za_prumernou_mzdu_2018,
 	round((t2.prumerna_mzda/t2.prumerna_cena_potraviny - t1.prumerna_mzda/t1.prumerna_cena_potraviny)/(t1.prumerna_mzda/t1.prumerna_cena_potraviny)*100, 2) narust_mnozstvi_v_procentech
-FROM t_adela_prystaszova_project_sql_primary_final t1
-LEFT JOIN t_adela_prystaszova_project_sql_primary_final t2
+FROM t_adela_prystaszova_project_sql_primary_final AS t1
+LEFT JOIN t_adela_prystaszova_project_sql_primary_final AS t2
 	ON t1.rok = t2.rok-12 AND t1.potravina = t2.potravina
 WHERE
 	t1.potravina IN ('Mléko polotučné pasterované', 'Chléb konzumní kmínový')
@@ -161,7 +161,7 @@ ORDER BY
 WITH narust_cen AS (
 	SELECT
 		t1.potravina,
-		round(avg((t2.prumerna_cena_potraviny - t1.prumerna_cena_potraviny)/t1.prumerna_cena_potraviny*100), 2) prumerny_narust_ceny_v_procentech
+		round(avg((t2.prumerna_cena_potraviny - t1.prumerna_cena_potraviny)/t1.prumerna_cena_potraviny*100), 2) AS prumerny_narust_ceny_v_procentech
 	FROM t_adela_prystaszova_project_sql_primary_final t1
 	INNER JOIN t_adela_prystaszova_project_sql_primary_final t2
 		ON t1.potravina = t2.potravina 
@@ -179,11 +179,11 @@ ORDER BY
 SELECT
 	t2.rok,
 	round((t2.prumerna_mzda - t1.prumerna_mzda)/t1.prumerna_mzda*100, 2) AS narust_mezd_v_procentech,
-	round(avg((t2.prumerna_cena_potraviny - t1.prumerna_cena_potraviny)/t1.prumerna_cena_potraviny*100), 2) narust_cen_v_procentech,
+	round(avg((t2.prumerna_cena_potraviny - t1.prumerna_cena_potraviny)/t1.prumerna_cena_potraviny*100), 2) AS narust_cen_v_procentech,
 	round((avg((t2.prumerna_cena_potraviny - t1.prumerna_cena_potraviny)/t1.prumerna_cena_potraviny) 
-		- ((t2.prumerna_mzda - t1.prumerna_mzda)/t1.prumerna_mzda))*100, 2) rozdil_narustu_cen_a_mezd
-FROM t_adela_prystaszova_project_sql_primary_final t1
-INNER JOIN t_adela_prystaszova_project_sql_primary_final t2
+		- ((t2.prumerna_mzda - t1.prumerna_mzda)/t1.prumerna_mzda))*100, 2) AS rozdil_narustu_cen_a_mezd
+FROM t_adela_prystaszova_project_sql_primary_final AS t1
+INNER JOIN t_adela_prystaszova_project_sql_primary_final AS t2
 	ON t1.potravina = t2.potravina 
 	AND t1.rok = t2.rok-1
 WHERE t1.odvetvi IS NULL  
@@ -199,11 +199,11 @@ ORDER BY
  */
 SELECT
 	t2.rok,
-	round(avg((t2.HDP - t1.HDP)/t1.HDP*100), 2) narust_hdp_v_procentech,
-	round(avg((t2.prumerna_cena_potraviny - t1.prumerna_cena_potraviny)/t1.prumerna_cena_potraviny*100), 2) narust_cen_v_procentech,
+	round(avg((t2.HDP - t1.HDP)/t1.HDP*100), 2) AS narust_hdp_v_procentech,
+	round(avg((t2.prumerna_cena_potraviny - t1.prumerna_cena_potraviny)/t1.prumerna_cena_potraviny*100), 2) AS narust_cen_v_procentech,
 	round((t2.prumerna_mzda - t1.prumerna_mzda)/t1.prumerna_mzda*100, 2) AS narust_mezd_v_procentech
-FROM t_adela_prystaszova_project_sql_primary_final t1
-INNER JOIN t_adela_prystaszova_project_sql_primary_final t2
+FROM t_adela_prystaszova_project_sql_primary_final AS t1
+INNER JOIN t_adela_prystaszova_project_sql_primary_final AS t2
 	ON t1.potravina = t2.potravina 
 	AND t1.rok = t2.rok-1
 WHERE t1.odvetvi IS NULL  

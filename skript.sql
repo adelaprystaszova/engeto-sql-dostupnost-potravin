@@ -109,6 +109,18 @@ INNER JOIN t_adela_prystaszova_project_sql_primary_final t2
 	ON t1.odvetvi = t2.odvetvi AND t1.rok = t2.rok-12
 ORDER BY (t2.prumerna_mzda - t1.prumerna_mzda)/t1.prumerna_mzda
 ;
+
+SELECT
+	t1.odvetvi,
+	round(t1.prumerna_mzda, 0) mzda_2006,
+	round(t2.prumerna_mzda, 0) mzda_2018,
+	round((t2.prumerna_mzda - t1.prumerna_mzda)/t1.prumerna_mzda*100, 2) AS narust_mzdy_v_procentech
+FROM t_adela_prystaszova_project_sql_primary_final t1
+INNER JOIN t_adela_prystaszova_project_sql_primary_final t2
+	ON t1.odvetvi = t2.odvetvi AND t1.rok = 2006 AND t2.rok = 2018
+GROUP BY t1.odvetvi
+ORDER BY (t2.prumerna_mzda - t1.prumerna_mzda)/t1.prumerna_mzda
+;
 -- Odvětví a roky, ve kterých průměrné měsíční mzdy poklesly:
 SELECT DISTINCT
 	t1.odvetvi,
